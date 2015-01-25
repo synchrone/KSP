@@ -52,6 +52,7 @@ class Handler (BaseHTTPRequestHandler):
 		http_debug("replying with %s", response)
 		self.send_response_only(response.status, response.reason)
 
+		self.wfile.write(bytes(self.protocol_version + ' {0} {1}\r\n'.format(response.status, response.reason), 'latin1'))
 		header_strings = [ k + ': ' + str(v) for k, v in response.headers.items() ]
 		self.wfile.write(bytes('\r\n'.join(header_strings), 'latin1'))
 		self.wfile.write(b'\r\n\r\n')
