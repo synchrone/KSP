@@ -5,7 +5,7 @@ from handlers.dummy import DummyResponse
 from handlers import CDE, CDE_PATH
 from calibre import LIBRARY_ID
 import calibre.collections as collections
-
+import xml.etree.ElementTree as ET
 
 _CALIBRE_DEVICE_ID = 'CalibreLibrary'
 _DEVICE_NODE = bytes('<device devicetype="%s" name="Calibre Library" serialnumber="%s"/>' % (_CALIBRE_DEVICE_ID, LIBRARY_ID), 'UTF-8')
@@ -20,13 +20,13 @@ class CDE_DevicesWithCollections (Upstream):
 		if response.status != 200:
 			return response
 
-		text = response.body_text()
-		devices_tag = text.find(b'<devices>')
-		if devices_tag < 0:
-			logging.warn("did not find <devices> in (%s) %s", type(text), str(text, 'utf-8'))
-			return response
+		tree = ET.fromstring(response.body_text())
+		calibreDevice = ET.SubElement(tree.find('devices'), 'device');
+		calibreDevice.set('devicetype', _CALIBRE_DEVICE_ID);
+		calibreDevice.set('name', 'Calibre Library');
+		calibreDevice.set('serialnumber', LIBRARY_ID);
+		response.update_body(ET.tostring(tree));
 
-		response.update_body(text[:devices_tag + 9] + _DEVICE_NODE + text[devices_tag + 9:])
 		return response
 
 
